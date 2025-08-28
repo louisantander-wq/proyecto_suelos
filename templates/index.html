@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Calidad de Suelos</title>
+    <!-- Librería para el mapa interactivo -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        /* Estilos para que la página se vea limpia y sea usable en móviles */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            color: #0d6efd;
+            text-align: center;
+        }
+        /* Contenedor del mapa */
+        #map { 
+            height: 350px; 
+            margin-bottom: 20px; 
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        /* Estilos del formulario */
+        form { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        input { 
+            padding: 12px; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button { 
+            padding: 12px; 
+            background: linear-gradient(90deg, #0d6efd, #0d9afd);
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.02);
+        }
+        .info-text {
+            text-align: center;
+            color: #666;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Registrar Nueva Muestra de Suelo</h1>
+    <p class="info-text">Haz clic en el mapa para seleccionar la ubicación exacta de la muestra.</p>
+    
+    <!-- El mapa se mostrará aquí -->
+    <div id="map"></div>
+
+    <form action="/registrar" method="post">
+        <!-- Campos ocultos que se llenan automáticamente con las coordenadas del mapa -->
+        <input type="hidden" id="latitud" name="latitud" required>
+        <input type="hidden" id="longitud" name="longitud" required>
+        
+        <input type="text" name="ubicacion_nombre" placeholder="Nombre de la ubicación (ej: Lomo de Corvina)" required>
+        <input type="number" step="0.1" name="ph" placeholder="Nivel de pH (ej: 7.2)" required>
+        <input type="number" step="0.01" name="plomo_ppm" placeholder="Plomo en partes por millón (ppm)" required>
+        <input type="number" step="0.01" name="arsenico_ppm" placeholder="Arsénico en partes por millón (ppm)" required>
+        
+        <button type="submit">Guardar Muestra</button>
+    </form>
+
+    <!-- Script para el mapa interactivo -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // Inicializa el mapa centrado en Perú
+        const map = L.map('map').setView([-9.19, -75.01], 5);
+        
+        // Agrega la capa de mapa base de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        let marker;
+        const latInput = document.getElementById('latitud');
+        const lonInput = document.getElementById('longitud');
+
+        // Función que se ejecuta al hacer clic en el mapa
+        map.on('click', function(e) {
+            const lat = e.latlng.lat.toFixed(6);
+            const lon = e.latlng.lng.toFixed(6);
+
+            // Actualiza los campos ocultos del formulario con las coordenadas
+            latInput.value = lat;
+            lonInput.value = lon;
+
+            // Si ya hay un marcador, lo mueve. Si no, lo crea.
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng).addTo(map);
+            }
+            marker.bindPopup(`<b>Ubicación seleccionada:</b><br>Lat: ${lat}, Lon: ${lon}`).openPopup();
+        });
+    </script>
+</body>
+</html>
